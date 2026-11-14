@@ -18,6 +18,7 @@
     ritual: P['ritual-1'], ritual2: P['ritual-2'], wrap: P['wrap-1'], wrap2: P['wrap-2'], cream: P['cream-1'], cream2: P['cream-2'],
     ritualWas: singles, ritualSave: singles - P['ritual-1'], ritual2Save: 2 * singles - P['ritual-2'],
     wrap2Save: 2 * P['wrap-1'] - P['wrap-2'], cream2Save: 2 * P['cream-1'] - P['cream-2'],
+    ritual2Per: P['ritual-2'] / 2, wrap2Per: P['wrap-2'] / 2, cream2Per: P['cream-2'] / 2,
     freeShip: C.freeShip, shipFee: C.shipFee
   };
   $$('[data-m]').forEach(function (el) { var v = M[el.dataset.m]; if (v != null) el.textContent = money(v); });
@@ -26,6 +27,15 @@
   $$('[data-abn]').forEach(function (el) { el.textContent = C.abn ? 'ABN ' + C.abn : 'ABN coming soon'; });
   $$('[data-mailto]').forEach(function (a) { a.href = 'mailto:' + C.email; });
   $$('[data-social]').forEach(function (a) { var u = C.social && C.social[a.dataset.social]; if (u) { a.href = u; a.target = '_blank'; a.rel = 'noopener'; } });
+
+  // delivery estimate: Brisbane date (UTC+10, no daylight saving) + dispatch + delivery business days, weekends skipped
+  function bizDay(n) {
+    var d = new Date(Date.now() + 36e6);
+    while (n > 0) { d.setUTCDate(d.getUTCDate() + 1); if (d.getUTCDay() % 6) n--; }
+    return 'Sun Mon Tue Wed Thu Fri Sat'.split(' ')[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' ')[d.getUTCMonth()];
+  }
+  var eta = bizDay(C.dispatchDays[0] + C.deliveryDays[0]) + '–' + bizDay(C.dispatchDays[1] + C.deliveryDays[1]);
+  $$('[data-eta]').forEach(function (el) { el.innerHTML = 'Order today. Arrives <b>' + eta + '</b>, tracked.'; el.hidden = false; });
 
   // ---------- 2. smooth scroll ----------
   var hasGsap = !!(window.gsap && window.ScrollTrigger);
@@ -97,7 +107,7 @@
 
   // ---------- 4. nav: theme, tuck, active link ----------
   var themed = $$('[data-nav-theme]'), links = $$('[data-nav-link]');
-  var shopEl = $('#shop'), ritualEl = $('#ritual'), ticking = false;
+  var shopEl = $('#shop'), ritualEl = $('#ritual'), navCta = $('[data-nav-cta]'), ticking = false;
   function onScroll() {
     if (ticking) return;
     ticking = true;
@@ -118,6 +128,8 @@
       else if (filmST && filmP < beatSpan) { if (Math.floor(filmP / (beatSpan / 4)) === 2) active = 'formula'; }
       else if (!filmST) { var rf = $('#formula').getBoundingClientRect(); if (rf.top < mid && rf.bottom > mid) active = 'formula'; }
       links.forEach(function (a) { a.classList.toggle('is-active', a.dataset.navLink === active); });
+      // desktop nav CTA: on once the hero copy is gone, off while the shop is on screen
+      navCta.classList.toggle('is-on', !mobileMQ.matches && y > vh * 0.7 && !(rs.top < vh * 0.75 && rs.bottom > vh * 0.25));
       sticky();
       maybePop(y, vh);
     });
@@ -178,13 +190,22 @@
       selectTab(tabs[(j + tabs.length) % tabs.length].dataset.tab, true);
     });
   });
+  // the quantity pick drives the button, the value stack (x n) and the Afterpay line
+  function pick(r) {
+    var panel = r.closest('.panel'), btn = $('[data-main-buy]', panel), sku = r.value, n = +sku.slice(-1), ap = $('[data-afterpay]', panel);
+    btn.dataset.sku = sku;
+    btn.dataset.price = P[sku];
+    $('[data-btn-total]', btn).textContent = money(P[sku]);
+    $$('[data-x]', panel).forEach(function (el) { el.textContent = money(M[el.dataset.m] * n); });
+    $$('[data-n]', panel).forEach(function (el) { el.textContent = n > 1 ? n + ' × ' : ''; });
+    $$('[data-now]', panel).forEach(function (el) { el.textContent = money(P[sku]); });
+    $$('[data-fs]', panel).forEach(function (el) { el.hidden = P[sku] < C.freeShip; });
+    ap.hidden = !C.afterpay;
+    $('span', ap).textContent = money(P[sku] / 4);
+  }
   $$('.qty input').forEach(function (r) {
-    r.addEventListener('change', function () {
-      var btn = $('[data-main-buy]', r.closest('.panel'));
-      btn.dataset.sku = r.value;
-      btn.dataset.price = P[r.value];
-      $('[data-btn-total]', btn).textContent = money(P[r.value]);
-    });
+    r.addEventListener('change', function () { pick(r); });
+    if (r.checked) pick(r);
   });
   var IMG = { duo: [600, 1000, 1400], jar: [600, 1000, 1400], tube: [600, 1000, 1400], 'cream-texture': [600, 1000], 'cream-scene': [600, 1000], 'wrap-brush': [600, 1000], 'wrap-scene': [600, 1000] };
   $$('.thumb').forEach(function (th) {

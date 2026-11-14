@@ -20,6 +20,9 @@
   function find(sku) { for (var i = 0; i < lines.length; i++) if (lines[i].sku === sku) return lines[i]; return null; }
   function count() { return lines.reduce(function (s, l) { return s + l.qty; }, 0); }
   function subtotal() { return lines.reduce(function (s, l) { return s + P[l.sku] * l.qty; }, 0); }
+  // what the same things cost bought one by one (Ritual = tube + jar; 2-packs = two singles)
+  var one = P['wrap-1'] + P['cream-1'], V = { 'ritual-1': one, 'ritual-2': 2 * one, 'wrap-2': 2 * P['wrap-1'], 'cream-2': 2 * P['cream-1'] };
+  function saved() { return lines.reduce(function (s, l) { return s + ((V[l.sku] || P[l.sku]) - P[l.sku]) * l.qty; }, 0); }
 
   function upsell() {
     var only = lines.length === 1 && lines[0].qty === 1 ? lines[0].sku : '';
@@ -62,8 +65,12 @@
     $('[data-ship-bar]', drawer).style.transform = 'scaleX(' + Math.min(1, sub / C.freeShip).toFixed(3) + ')';
     $('[data-subtotal]', drawer).textContent = money(sub);
     $('[data-ship-fee]', drawer).textContent = free ? 'Free' : money(C.shipFee);
-    $('[data-total]', drawer).textContent = money(sub + (free || empty ? 0 : C.shipFee));
-    $('[data-assure]', drawer).textContent = '30-night promise · Secure checkout' + (C.afterpay ? ' · Afterpay available' : '');
+    var total = sub + (free || empty ? 0 : C.shipFee), sv = saved(), ap = $('[data-afterpay]', drawer);
+    $('[data-total]', drawer).textContent = money(total);
+    $('[data-save-row]', drawer).hidden = !sv;
+    $('[data-save]', drawer).textContent = money(sv);
+    ap.hidden = !C.afterpay;
+    $('span', ap).textContent = money(total / 4);
     note.textContent = '';
 
     [].forEach.call(document.querySelectorAll('[data-cart-count]'), function (el) {
