@@ -1,0 +1,1 @@
+{ "frames": 121, "desktop": "assets/film/d/%04d.webp", "mobile": "assets/film/m/%04d.webp", "w": 1600, "h": 900, "start": 1, "holdStart": 0.125, "holdEnd": 0.125, "focusMobile": 0.5 }
