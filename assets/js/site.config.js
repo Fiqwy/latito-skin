@@ -4,11 +4,13 @@
 window.LATITO_CONFIG = {
   brand: 'LATITO',
   currency: 'AUD',
-  prices: { 'wrap-1': 29, 'wrap-2': 52, 'cream-1': 32, 'cream-2': 58, 'ritual-1': 49, 'ritual-2': 89 },
+  prices: { 'wrap-1': 29, 'wrap-2': 52, 'cream-1': 32, 'cream-2': 58, 'ritual-1': 49, 'ritual-2': 89, 'ritual-3': 119 },
   freeShip: 45,
   shipFee: 7.95,
   dispatchDays: [1, 2],  // business days to leave us (min, max)
   deliveryDays: [7, 12], // business days in transit (min, max); the dispatch/delivery text and the date estimate come from these
+  holidays: ['01-01', '01-26', '12-25', '12-26', '2026-12-28'], // skipped as business days; 'MM-DD' every year or 'YYYY-MM-DD' once
+  christmas: { enabled: true, from: '11-01', deliverBy: '12-24' }, // gift block + bar prefix from 'from' until the order-by date
   foundingCode: 'FOUNDING100',
   foundingPercent: 15,
   email: 'latito.nm@gmail.com',
@@ -23,6 +25,7 @@ window.LATITO_CONFIG = {
   skus: {
     'ritual-1': { product: 'ritual', name: 'The Overnight Ritual', variant: '1 set', img: 'assets/img/product/duo-240.webp' },
     'ritual-2': { product: 'ritual', name: 'The Overnight Ritual', variant: '2 sets', img: 'assets/img/product/duo-240.webp' },
+    'ritual-3': { product: 'ritual', name: 'The Overnight Ritual', variant: '3 sets', img: 'assets/img/product/duo-240.webp' },
     'wrap-1': { product: 'wrap', name: 'Night Wrap', variant: '1 tube', img: 'assets/img/product/tube-240.webp' },
     'wrap-2': { product: 'wrap', name: 'Night Wrap', variant: '2 tubes', img: 'assets/img/product/tube-240.webp' },
     'cream-1': { product: 'cream', name: 'Capsule Cream', variant: '1 jar', img: 'assets/img/product/jar-240.webp' },

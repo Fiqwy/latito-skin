@@ -15,10 +15,10 @@
   // ---------- 1. fill prices and facts from config ----------
   var singles = P['wrap-1'] + P['cream-1'];
   var M = {
-    ritual: P['ritual-1'], ritual2: P['ritual-2'], wrap: P['wrap-1'], wrap2: P['wrap-2'], cream: P['cream-1'], cream2: P['cream-2'],
-    ritualWas: singles, ritualSave: singles - P['ritual-1'], ritual2Save: 2 * singles - P['ritual-2'],
+    ritual: P['ritual-1'], ritual2: P['ritual-2'], ritual3: P['ritual-3'], wrap: P['wrap-1'], wrap2: P['wrap-2'], cream: P['cream-1'], cream2: P['cream-2'],
+    ritualWas: singles, ritualSave: singles - P['ritual-1'], ritual2Save: 2 * singles - P['ritual-2'], ritual3Save: 3 * singles - P['ritual-3'],
     wrap2Save: 2 * P['wrap-1'] - P['wrap-2'], cream2Save: 2 * P['cream-1'] - P['cream-2'],
-    ritual2Per: P['ritual-2'] / 2, wrap2Per: P['wrap-2'] / 2, cream2Per: P['cream-2'] / 2,
+    ritual2Per: P['ritual-2'] / 2, ritual3Per: P['ritual-3'] / 3, wrap2Per: P['wrap-2'] / 2, cream2Per: P['cream-2'] / 2,
     freeShip: C.freeShip, shipFee: C.shipFee
   };
   $$('[data-m]').forEach(function (el) { var v = M[el.dataset.m]; if (v != null) el.textContent = money(v); });
@@ -28,14 +28,33 @@
   $$('[data-mailto]').forEach(function (a) { a.href = 'mailto:' + C.email; });
   $$('[data-social]').forEach(function (a) { var u = C.social && C.social[a.dataset.social]; if (u) { a.href = u; a.target = '_blank'; a.rel = 'noopener'; } });
 
-  // delivery estimate: Brisbane date (UTC+10, no daylight saving) + dispatch + delivery business days, weekends skipped
-  function bizDay(n) {
-    var d = new Date(Date.now() + 36e6);
-    while (n > 0) { d.setUTCDate(d.getUTCDate() + 1); if (d.getUTCDay() % 6) n--; }
-    return 'Sun Mon Tue Wed Thu Fri Sat'.split(' ')[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' ')[d.getUTCMonth()];
+  // delivery estimate: Brisbane date (UTC+10, no daylight saving; read with getUTC*) + dispatch + delivery
+  // business days, skipping weekends and config holidays
+  var now = new Date(Date.now() + 36e6), H = C.holidays || [], slow = C.dispatchDays[1] + C.deliveryDays[1];
+  function bizDay(n, from) {
+    var d = new Date(from || now), s;
+    while (n > 0) { d.setUTCDate(d.getUTCDate() + 1); s = d.toISOString().slice(0, 10); if (d.getUTCDay() % 6 && H.indexOf(s) < 0 && H.indexOf(s.slice(5)) < 0) n--; }
+    return d;
   }
-  var eta = bizDay(C.dispatchDays[0] + C.deliveryDays[0]) + '–' + bizDay(C.dispatchDays[1] + C.deliveryDays[1]);
+  function fmt(d) { return 'Sun Mon Tue Wed Thu Fri Sat'.split(' ')[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' ')[d.getUTCMonth()]; }
+  var eta = fmt(bizDay(C.dispatchDays[0] + C.deliveryDays[0])) + '–' + fmt(bizDay(slow));
   $$('[data-eta]').forEach(function (el) { el.innerHTML = 'Order today. Arrives <b>' + eta + '</b>, tracked.'; el.hidden = false; });
+
+  // Christmas: order-by = the latest day whose slowest delivery still lands by deliverBy. From 'from'
+  // until then it shows the gift block and the bar prefix; after that both stay hidden.
+  var X = C.christmas, md = function (v, e) { return Date.UTC(now.getUTCFullYear(), v.slice(0, 2) - 1, +v.slice(3) + e) - e; };
+  if (X && X.enabled) {
+    var by = md(X.deliverBy, 1), cut = new Date(by);
+    while (bizDay(slow, cut) > by) cut.setUTCDate(cut.getUTCDate() - 1);
+    // show the last working day (a weekend order dispatches Monday anyway)
+    var ci = function () { return cut.toISOString().slice(0, 10); };
+    while (!(cut.getUTCDay() % 6) || H.indexOf(ci()) > -1 || H.indexOf(ci().slice(5)) > -1) cut.setUTCDate(cut.getUTCDate() - 1);
+    if (now >= md(X.from, 0) && now <= cut) {
+      $$('[data-cut]').forEach(function (el) { el.textContent = fmt(cut); });
+      $$('[data-xmas]').forEach(function (el) { el.hidden = false; });
+      $('.announce').classList.add('is-xmas');
+    }
+  }
 
   // ---------- 2. smooth scroll ----------
   var hasGsap = !!(window.gsap && window.ScrollTrigger);

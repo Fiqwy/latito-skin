@@ -55,7 +55,11 @@
       "description": "Night Wrap + Capsule Cream. Cream first. Wrap on top. Peel at sunrise.",
       "image": "https://latito.com.au/skin/assets/img/product/duo-1400.webp",
       "brand": { "@type": "Brand", "name": "LATITO" },
-      "offers": { "@type": "Offer", "price": "49.00", "priceCurrency": "AUD", "availability": "https://schema.org/InStock", "url": "https://latito.com.au/skin/#shop", "seller": { "@id": "https://latito.com.au/#org" } }
+      "offers": [
+        { "@type": "Offer", "name": "1 set", "sku": "ritual-1", "price": "49.00", "priceCurrency": "AUD", "availability": "https://schema.org/InStock", "url": "https://latito.com.au/skin/#shop", "seller": { "@id": "https://latito.com.au/#org" } },
+        { "@type": "Offer", "name": "2 sets", "sku": "ritual-2", "price": "89.00", "priceCurrency": "AUD", "availability": "https://schema.org/InStock", "url": "https://latito.com.au/skin/#shop", "seller": { "@id": "https://latito.com.au/#org" } },
+        { "@type": "Offer", "name": "3 sets", "sku": "ritual-3", "price": "119.00", "priceCurrency": "AUD", "availability": "https://schema.org/InStock", "url": "https://latito.com.au/skin/#shop", "seller": { "@id": "https://latito.com.au/#org" } }
+      ]
     },
     {
       "@type": "Product",
@@ -83,7 +87,7 @@
 <a class="skip" href="#main">Skip to content</a>
 
 <header class="hdr" data-hdr data-theme="film">
-  <p class="announce">Free tracked shipping on the Ritual · 30-night money-back promise</p>
+  <p class="announce"><span><span class="announce__x">Order by <span data-cut>Sun 6 Dec</span> for Christmas · </span><span class="announce__l">Free tracked shipping on the Ritual · 30-night money-back promise</span><span class="announce__s">30-night promise</span></span></p>
   <nav class="nav" aria-label="Main">
     <a class="nav__brand" href="#top">LATITO</a>
     <ul class="nav__links">
@@ -214,7 +218,8 @@
           <fieldset class="qty">
             <legend class="sr-only">How many sets</legend>
             <label class="pill"><input type="radio" name="qty-ritual" value="ritual-1" checked><span><span>1 set · <span data-m="ritual">$49</span></span></span></label>
-            <label class="pill"><input type="radio" name="qty-ritual" value="ritual-2"><span><span>2 sets · <span data-m="ritual2">$89</span> · Save <span data-m="ritual2Save">$33</span></span><small class="pill__per"><span data-m="ritual2Per">$44.50</span> a set</small><b class="pill__tag">Best value</b></span></label>
+            <label class="pill"><input type="radio" name="qty-ritual" value="ritual-2"><span><span>2 sets · <span data-m="ritual2">$89</span></span><small class="pill__per"><span data-m="ritual2Per">$44.50</span> a set</small><b class="pill__tag">Save <span data-m="ritual2Save">$33</span></b></span></label>
+            <label class="pill"><input type="radio" name="qty-ritual" value="ritual-3"><span><span>3 sets · <span data-m="ritual3">$119</span> · Save <span data-m="ritual3Save">$64</span></span><small class="pill__per"><span data-m="ritual3Per">$39.67</span> a set</small><b class="pill__tag">Most savings</b></span></label>
           </fieldset>
           <button class="btn btn--violet btn--block" type="button" data-add data-main-buy data-sku="ritual-1" data-price="49" data-shopify-buy data-product-handle="overnight-ritual">Add to bag · <span data-btn-total>$49</span></button>
           <p class="eta" data-eta hidden></p>
@@ -488,6 +493,29 @@
     </div>
     <div class="mid-cta" data-reveal>
       <a class="btn btn--violet" href="#shop" data-open-tab="ritual">Get the salon glow at home · <span data-m="ritual">$49</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHRISTMAS GIFTING (seasonal: main.js unhides it until the order-by date, see config.christmas) ============ -->
+<section class="gift sect" aria-labelledby="gift-h" data-nav-theme="light" data-xmas hidden>
+  <div class="wrap">
+    <div class="gift__grid">
+      <div class="gift__copy" data-reveal>
+        <p class="eyebrow">Christmas gifting</p>
+        <h2 class="h2 display" id="gift-h">The gift she’ll <span class="accent">actually use.</span></h2>
+        <p class="lede gift__body">Glass skin by Christmas morning? Send the Ritual straight to her door.</p>
+        <ul class="ticks gift__ticks">
+          <li>Order by <b data-cut>Sun 6 Dec</b> for Christmas delivery.</li>
+          <li>Ship it to her address at checkout.</li>
+          <li>Our 30-night promise covers gifts too.</li>
+        </ul>
+        <a class="btn btn--violet" href="#shop" data-open-tab="ritual">Give the Ritual · <span data-m="ritual">$49</span></a>
+        <p class="note gift__fine">Order-by date is our best guide. Christmas post can run slow.</p>
+      </div>
+      <figure class="gift__img" data-reveal>
+        <img src="assets/img/editorial/gift-600.webp" srcset="assets/img/editorial/gift-600.webp 600w, assets/img/editorial/gift-1000.webp 1000w" sizes="(min-width: 1025px) 40vw, 88vw" width="600" height="750" alt="The Overnight Ritual on blush linen with eucalyptus, a blank gift tag and fairy lights" loading="lazy" decoding="async">
+      </figure>
     </div>
   </div>
 </section>

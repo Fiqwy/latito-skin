@@ -128,6 +128,9 @@ button, [role="tab"], .btn { -webkit-user-select: none; user-select: none; }
   font-size: 12.5px; font-weight: 500; letter-spacing: .01em; text-align: center;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.announce > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.announce__x, .announce__s { display: none; }
+.is-xmas .announce__x { display: inline; }
 .nav {
   position: relative;
   height: var(--nav-h);
@@ -364,6 +367,16 @@ button, [role="tab"], .btn { -webkit-user-select: none; user-select: none; }
 .ctable tbody tr:last-child .is-us { border-radius: 0 0 0 0; }
 .ctable th:first-child, .ctable td:first-child { position: sticky; left: 0; background: #fff; z-index: 1; }
 
+/* Christmas gifting (seasonal; main.js unhides it) */
+.gift { background: #EEE3F4; }
+.gift__grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: clamp(32px, 6vw, 96px); align-items: center; }
+.gift__img img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 24px; background: var(--blush-card); }
+.gift__body { margin-top: 26px; }
+.gift__ticks { margin: 26px 0 34px; gap: 12px; }
+.gift__ticks li { font-size: 16px; color: var(--ink); }
+.gift__ticks li::before { top: 3px; }
+.gift__fine { margin-top: 18px; font-size: 13px; }
+
 /* trust */
 .trust { background: var(--blush-card); }
 .trust__grid { display: grid; grid-template-columns: .85fr 1.15fr; gap: clamp(32px, 6vw, 96px); align-items: center; }
@@ -537,7 +550,8 @@ body.cart-open .pop { opacity: 0; visibility: hidden; }
 @media (max-width: 1024px) {
   .pcard { grid-template-columns: 1fr; }
   .pcard__info { padding: 8px 6px 8px; }
-  .why__head, .expect__grid, .faq__grid, .trust__grid { grid-template-columns: 1fr; }
+  .why__head, .expect__grid, .faq__grid, .trust__grid, .gift__grid { grid-template-columns: 1fr; }
+  .gift__img { order: -1; }
   .expect__head, .faq .h2 { position: static; }
   .founding { grid-template-columns: 1fr; }
   .founding .btn { justify-self: start; }
@@ -547,6 +561,8 @@ body.cart-open .pop { opacity: 0; visibility: hidden; }
 @media (max-width: 768px) {
   :root { --nav-h: 56px; --bar-h: 32px; }
   .announce { font-size: 11.5px; }
+  .is-xmas .announce__l { display: none; }
+  .is-xmas .announce__s { display: inline; }
   .nav { grid-template-columns: auto 1fr auto; gap: 12px; }
   .nav__brand { font-size: 17px; }
   .nav__links { justify-content: center; gap: 14px; }
@@ -588,7 +604,7 @@ body.cart-open .pop { opacity: 0; visibility: hidden; }
   .vs { margin-top: 16px; padding: 12px 14px; }
   .vs__rows li { padding: 4px 0; font-size: 13.5px; }
   .vs__total { font-size: 14px; }
-  .qty { margin: 24px 0 14px; }
+  .qty { margin: 18px 0 12px; }
   .rail-nav { display: none; }
   .rail { grid-auto-columns: 78vw; gap: 14px; }
   .steps { grid-template-columns: 1fr; gap: 48px; }

@@ -21,18 +21,20 @@
   function count() { return lines.reduce(function (s, l) { return s + l.qty; }, 0); }
   function subtotal() { return lines.reduce(function (s, l) { return s + P[l.sku] * l.qty; }, 0); }
   // what the same things cost bought one by one (Ritual = tube + jar; 2-packs = two singles)
-  var one = P['wrap-1'] + P['cream-1'], V = { 'ritual-1': one, 'ritual-2': 2 * one, 'wrap-2': 2 * P['wrap-1'], 'cream-2': 2 * P['cream-1'] };
+  var one = P['wrap-1'] + P['cream-1'], V = { 'ritual-1': one, 'ritual-2': 2 * one, 'ritual-3': 3 * one, 'wrap-2': 2 * P['wrap-1'], 'cream-2': 2 * P['cream-1'] };
   function saved() { return lines.reduce(function (s, l) { return s + ((V[l.sku] || P[l.sku]) - P[l.sku]) * l.qty; }, 0); }
 
   function upsell() {
     var only = lines.length === 1 && lines[0].qty === 1 ? lines[0].sku : '';
-    var r1 = find('ritual-1');
+    var r1 = find('ritual-1'), r2 = find('ritual-2'), r3 = find('ritual-3');
     if (only === 'wrap-1') return { from: 'wrap-1', to: 'ritual-1', img: C.skus['cream-1'].img, add: P['ritual-1'] - P['wrap-1'],
       text: 'Complete the ritual. Add the Capsule Cream for +' + money(P['ritual-1'] - P['wrap-1']) + '. It’s usually ' + money(P['cream-1']) + '.' };
     if (only === 'cream-1') return { from: 'cream-1', to: 'ritual-1', img: C.skus['wrap-1'].img, add: P['ritual-1'] - P['cream-1'],
       text: 'Complete the ritual. Add the Night Wrap for +' + money(P['ritual-1'] - P['cream-1']) + '. It’s usually ' + money(P['wrap-1']) + '.' };
-    if (r1 && r1.qty === 1 && !find('ritual-2')) return { from: 'ritual-1', to: 'ritual-2', img: C.skus['ritual-1'].img, add: P['ritual-2'] - P['ritual-1'],
-      text: 'Make it two. Add a second Ritual for +' + money(P['ritual-2'] - P['ritual-1']) + '. You save ' + money(2 * (P['wrap-1'] + P['cream-1']) - P['ritual-2']) + ' in total.' };
+    // the Ritual ladder: one set → two → three; nothing once three is in the bag
+    var n = r1 && r1.qty === 1 && !r2 && !r3 ? 2 : r2 && r2.qty === 1 && !r1 && !r3 ? 3 : 0, to = 'ritual-' + n, from = 'ritual-' + (n - 1);
+    if (n) return { from: from, to: to, img: C.skus[to].img, add: P[to] - P[from],
+      text: 'Make it ' + (n > 2 ? 'three. Add a third' : 'two. Add a second') + ' Ritual for +' + money(P[to] - P[from]) + '. You save ' + money(n * one - P[to]) + ' in total.' };
     return null;
   }
 
