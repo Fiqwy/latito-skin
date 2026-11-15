@@ -3,7 +3,7 @@
 window.LATITO_CONFIG = {
   brand: 'LATITO',
   currency: 'AUD',
-  prices: { 'wrap-1': 29, 'wrap-2': 52, 'cream-1': 32, 'cream-2': 58, 'ritual-1': 49, 'ritual-2': 89, 'ritual-3': 119 },
+  prices: { 'wrap-1': 32, 'wrap-2': 58, 'cream-1': 36, 'cream-2': 66, 'ritual-1': 59, 'ritual-2': 105, 'ritual-3': 139 },
   freeShip: 45,
   shipFee: 7.95,
   dispatchDays: [1, 2],  // business days to leave us (min, max)
