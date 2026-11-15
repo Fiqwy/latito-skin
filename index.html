@@ -29,6 +29,8 @@
 <link rel="stylesheet" href="assets/css/styles.css">
 <script>document.documentElement.classList.add('js')</script>
 <script src="assets/js/site.config.js" defer></script>
+<script src="assets/js/track.js" defer></script>
+<script src="assets/js/fill.js" defer></script>
 <script src="vendor/gsap.min.js" defer></script>
 <script src="vendor/ScrollTrigger.min.js" defer></script>
 <script src="vendor/lenis.min.js" defer></script>
@@ -41,9 +43,9 @@
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://latito.com.au/#org",
+      "@id": "https://latito.com.au/skin/#org",
       "name": "LATITO",
-      "url": "https://latito.com.au/",
+      "url": "https://latito.com.au/skin/",
       "logo": "https://latito.com.au/skin/assets/img/favicon.svg",
       "email": "latito.nm@gmail.com",
       "address": { "@type": "PostalAddress", "addressRegion": "QLD", "addressLocality": "Gold Coast", "addressCountry": "AU" }
@@ -56,9 +58,9 @@
       "image": "https://latito.com.au/skin/assets/img/product/duo-1400.webp",
       "brand": { "@type": "Brand", "name": "LATITO" },
       "offers": [
-        { "@type": "Offer", "name": "1 set", "sku": "ritual-1", "price": "49.00", "priceCurrency": "AUD", "availability": "https://schema.org/InStock", "url": "https://latito.com.au/skin/#shop", "seller": { "@id": "https://latito.com.au/#org" } },
-        { "@type": "Offer", "name": "2 sets", "sku": "ritual-2", "price": "89.00", "priceCurrency": "AUD", "availability": "https://schema.org/InStock", "url": "https://latito.com.au/skin/#shop", "seller": { "@id": "https://latito.com.au/#org" } },
-        { "@type": "Offer", "name": "3 sets", "sku": "ritual-3", "price": "119.00", "priceCurrency": "AUD", "availability": "https://schema.org/InStock", "url": "https://latito.com.au/skin/#shop", "seller": { "@id": "https://latito.com.au/#org" } }
+        { "@type": "Offer", "name": "1 set", "sku": "ritual-1", "price": "49.00", "priceCurrency": "AUD", "availability": "https://schema.org/InStock", "url": "https://latito.com.au/skin/#shop", "seller": { "@id": "https://latito.com.au/skin/#org" } },
+        { "@type": "Offer", "name": "2 sets", "sku": "ritual-2", "price": "89.00", "priceCurrency": "AUD", "availability": "https://schema.org/InStock", "url": "https://latito.com.au/skin/#shop", "seller": { "@id": "https://latito.com.au/skin/#org" } },
+        { "@type": "Offer", "name": "3 sets", "sku": "ritual-3", "price": "119.00", "priceCurrency": "AUD", "availability": "https://schema.org/InStock", "url": "https://latito.com.au/skin/#shop", "seller": { "@id": "https://latito.com.au/skin/#org" } }
       ]
     },
     {
@@ -68,7 +70,7 @@
       "description": "Collagen overnight peel-off mask. Brush it on. Let it dry. Sleep. Peel it off at sunrise.",
       "image": "https://latito.com.au/skin/assets/img/product/tube-1400.webp",
       "brand": { "@type": "Brand", "name": "LATITO" },
-      "offers": { "@type": "Offer", "price": "29.00", "priceCurrency": "AUD", "availability": "https://schema.org/InStock", "url": "https://latito.com.au/skin/#shop", "seller": { "@id": "https://latito.com.au/#org" } }
+      "offers": { "@type": "Offer", "price": "29.00", "priceCurrency": "AUD", "availability": "https://schema.org/InStock", "url": "https://latito.com.au/skin/#shop", "seller": { "@id": "https://latito.com.au/skin/#org" } }
     },
     {
       "@type": "Product",
@@ -77,7 +79,7 @@
       "description": "Pink collagen jelly cream with 5% niacinamide. A bouncy jelly full of pink capsules. Crush them in and pick your finish.",
       "image": "https://latito.com.au/skin/assets/img/product/jar-1400.webp",
       "brand": { "@type": "Brand", "name": "LATITO" },
-      "offers": { "@type": "Offer", "price": "32.00", "priceCurrency": "AUD", "availability": "https://schema.org/InStock", "url": "https://latito.com.au/skin/#shop", "seller": { "@id": "https://latito.com.au/#org" } }
+      "offers": { "@type": "Offer", "price": "32.00", "priceCurrency": "AUD", "availability": "https://schema.org/InStock", "url": "https://latito.com.au/skin/#shop", "seller": { "@id": "https://latito.com.au/skin/#org" } }
     }
   ]
 }
@@ -599,8 +601,8 @@
       <nav class="foot__col" aria-label="Help">
         <h2>Help</h2>
         <ul>
-          <li><a href="#shop" data-open-acc="shipping">Shipping</a></li>
-          <li><a href="#faq-8" data-open-faq="faq-8">30-night promise &amp; returns</a></li>
+          <li><a href="shipping-returns.html">Shipping</a></li>
+          <li><a href="shipping-returns.html#promise">30-night promise &amp; returns</a></li>
           <li><a href="#shop" data-open-acc="ingredients">Ingredients</a></li>
           <li><a href="mailto:latito.nm@gmail.com" data-mailto>Contact (<span data-c="email">latito.nm@gmail.com</span>)</a></li>
         </ul>
@@ -610,7 +612,7 @@
         <ul><li><a href="#" data-social="instagram">Instagram</a></li><li><a href="#" data-social="tiktok">TikTok</a></li></ul>
       </nav>
     </div>
-    <p class="foot__legal">© 2026 LATITO · <span data-abn>ABN coming soon</span> · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
+    <p class="foot__legal">© 2026 LATITO · <span data-abn>ABN coming soon</span> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></p>
   </div>
   <p class="foot__giant" aria-hidden="true">LATITO</p>
 </footer>
@@ -662,6 +664,7 @@
         <p class="secure__t"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" focusable="false"><rect x="2.5" y="7" width="11" height="7.5" rx="2" fill="currentColor"/><path d="M5 7V5.2a3 3 0 0 1 6 0V7" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Secure checkout</p>
         <div class="pay" role="img" aria-label="Secure checkout with Visa, Mastercard, American Express, Apple Pay, Google Pay and Shop Pay"><svg class="pm" viewBox="0 0 38 24" aria-hidden="true" focusable="false"><use href="#pm-visa"/></svg><svg class="pm" viewBox="0 0 38 24" aria-hidden="true" focusable="false"><use href="#pm-mc"/></svg><svg class="pm" viewBox="0 0 38 24" aria-hidden="true" focusable="false"><use href="#pm-amex"/></svg><svg class="pm" viewBox="0 0 38 24" aria-hidden="true" focusable="false"><use href="#pm-apple"/></svg><svg class="pm" viewBox="0 0 38 24" aria-hidden="true" focusable="false"><use href="#pm-gpay"/></svg><svg class="pm" viewBox="0 0 38 24" aria-hidden="true" focusable="false"><use href="#pm-shop"/></svg></div>
       </div>
+      <p class="drawer__legal"><a href="shipping-returns.html">Shipping &amp; returns</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></p>
     </div>
   </div>
 </div>

@@ -3,7 +3,7 @@
   'use strict';
   var C = window.LATITO_CONFIG, P = C.prices, KEY = 'latito_cart_v1';
   var $ = function (s, r) { return (r || document).querySelector(s); };
-  var money = function (n) { return '$' + (Math.round(n * 100) % 100 ? n.toFixed(2) : String(Math.round(n))); };
+  var money = C.money; // fill.js
   var drawer = $('#cart'), panel = $('.drawer__panel', drawer);
   var linesEl = $('[data-lines]', drawer), upEl = $('[data-upsell]', drawer), emptyEl = $('[data-empty]', drawer);
   var footEl = $('[data-foot]', drawer), shipEl = $('[data-ship]', drawer), note = $('[data-checkout-note]', drawer);
@@ -23,6 +23,8 @@
   // what the same things cost bought one by one (Ritual = tube + jar; 2-packs = two singles)
   var one = P['wrap-1'] + P['cream-1'], V = { 'ritual-1': one, 'ritual-2': 2 * one, 'ritual-3': 3 * one, 'wrap-2': 2 * P['wrap-1'], 'cream-2': 2 * P['cream-1'] };
   function saved() { return lines.reduce(function (s, l) { return s + ((V[l.sku] || P[l.sku]) - P[l.sku]) * l.qty; }, 0); }
+  // every add → track.js; value = what it added
+  function emit(sku, qty, value) { document.dispatchEvent(new CustomEvent('cart:add', { detail: { sku: sku, qty: qty, value: value } })); }
 
   function upsell() {
     var only = lines.length === 1 && lines[0].qty === 1 ? lines[0].sku : '';
@@ -94,7 +96,7 @@
     if (P[sku] == null) return;
     var l = find(sku);
     if (l) l.qty = Math.min(99, l.qty + (qty || 1)); else lines.push({ sku: sku, qty: qty || 1 });
-    save(); render(sku); open(trigger);
+    save(); render(sku); open(trigger); emit(sku, qty || 1, P[sku] * (qty || 1));
   }
   function setQty(sku, q) {
     var l = find(sku); if (!l) return;
@@ -105,7 +107,7 @@
     var l = find(from); if (!l) return;
     var t = find(to);
     if (t) { t.qty += 1; lines.splice(lines.indexOf(l), 1); } else { l.sku = to; l.qty = 1; }
-    save(); render(to);
+    save(); render(to); emit(to, 1, P[to] - P[from]);
     var f = $('.line.is-added [data-act="inc"]', drawer) || $('[data-close-cart].round', drawer);
     f.focus();
   }
@@ -149,7 +151,7 @@
     if (b.hasAttribute('data-close-cart')) { close(); return; }
     if (b.hasAttribute('data-checkout')) { checkout(b); return; }
     var sku = b.dataset.sku, l = find(sku);
-    if (b.dataset.act === 'inc' && l) setQty(sku, l.qty + 1);
+    if (b.dataset.act === 'inc' && l) { setQty(sku, l.qty + 1); emit(sku, 1, P[sku]); }
     else if (b.dataset.act === 'dec' && l) setQty(sku, l.qty - 1);
     else if (b.dataset.act === 'rm') setQty(sku, 0);
     else if (b.dataset.act === 'up') swap(b.dataset.from, b.dataset.to);
@@ -171,23 +173,33 @@
   });
 
   // ---- checkout ----
+  // ?checkout=test: real cart, checkout link printed, not opened (HANDOFF.md)
+  var TEST = /[?&]checkout=test\b/.test(location.search);
   function checkout(btn) {
-    var s = C.shopify || {};
-    var ready = s.domain && s.storefrontToken && lines.length && lines.every(function (l) { return s.variants && s.variants[l.sku]; });
-    if (!ready) { note.textContent = 'Checkout connects at launch'; return; }
+    var s = C.shopify || {}, v = s.variants || {};
+    if (!lines.length) return;
+    if (!s.domain || !s.storefrontToken || lines.some(function (l) { return !v[l.sku]; })) {
+      if (TEST) console.warn('[LATITO test checkout] shopify config incomplete:', s);
+      note.textContent = 'Checkout connects at launch'; return;
+    }
+    document.dispatchEvent(new CustomEvent('cart:checkout', { detail: { lines: lines.slice(), subtotal: subtotal(), count: count() } }));
     btn.disabled = true; note.textContent = '';
-    fetch('https://' + s.domain + '/api/' + (s.apiVersion || '2025-01') + '/graphql.json', {
+    fetch('https://' + s.domain + '/api/' + (s.apiVersion || '2026-10') + '/graphql.json', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Shopify-Storefront-Access-Token': s.storefrontToken },
       body: JSON.stringify({
-        query: 'mutation($lines:[CartLineInput!]!){cartCreate(input:{lines:$lines}){cart{checkoutUrl} userErrors{message}}}',
-        variables: { lines: lines.map(function (l) { return { merchandiseId: s.variants[l.sku], quantity: l.qty }; }) }
+        query: 'mutation($lines:[CartLineInput!]!){cartCreate(input:{lines:$lines}){cart{checkoutUrl} userErrors{field message}}}',
+        variables: { lines: lines.map(function (l) { return { merchandiseId: v[l.sku], quantity: l.qty }; }) }
       })
-    }).then(function (r) { return r.json(); }).then(function (j) {
-      var url = j && j.data && j.data.cartCreate && j.data.cartCreate.cart && j.data.cartCreate.cart.checkoutUrl;
-      if (!url) throw new Error('no checkoutUrl');
-      window.location.href = url;
-    }).catch(function () {
+    }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(function (j) {
+      var c = j.data && j.data.cartCreate, url = c && c.cart && c.cart.checkoutUrl;
+      if (!url) throw new Error(JSON.stringify(j.errors || (c && c.userErrors) || j));
+      if (window.LatitoTrack) url = window.LatitoTrack.withUtm(url);
+      if (!TEST) { window.location.href = url; return; }
+      console.info('[LATITO test checkout]', url);
+      btn.disabled = false; note.textContent = 'Test mode: the checkout link is in the console.';
+    }).catch(function (err) {
+      console.warn('[LATITO] Checkout failed:', err.message);
       btn.disabled = false;
       note.textContent = 'Checkout didn’t open. Please try again.';
     });

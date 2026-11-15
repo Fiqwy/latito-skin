@@ -1,10 +1,10 @@
-/* LATITO Skin: config fill, smooth scroll, film timeline, nav, product card, slide-in, sticky bar. */
+/* LATITO Skin: smooth scroll, stepped film, nav, product card, slide-in, sticky bar (prices: fill.js). */
 (function () {
   'use strict';
   var C = window.LATITO_CONFIG, P = C.prices;
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
-  var money = function (n) { return '$' + (Math.round(n * 100) % 100 ? n.toFixed(2) : String(Math.round(n))); };
+  var money = C.money, M = C.M; // fill.js
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var mobileMQ = window.matchMedia('(max-width: 768px)');
   var store = {
@@ -12,24 +12,7 @@
     set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   };
 
-  // ---------- 1. fill prices and facts from config ----------
-  var singles = P['wrap-1'] + P['cream-1'];
-  var M = {
-    ritual: P['ritual-1'], ritual2: P['ritual-2'], ritual3: P['ritual-3'], wrap: P['wrap-1'], wrap2: P['wrap-2'], cream: P['cream-1'], cream2: P['cream-2'],
-    ritualWas: singles, ritualSave: singles - P['ritual-1'], ritual2Save: 2 * singles - P['ritual-2'], ritual3Save: 3 * singles - P['ritual-3'],
-    wrap2Save: 2 * P['wrap-1'] - P['wrap-2'], cream2Save: 2 * P['cream-1'] - P['cream-2'],
-    ritual2Per: P['ritual-2'] / 2, ritual3Per: P['ritual-3'] / 3, wrap2Per: P['wrap-2'] / 2, cream2Per: P['cream-2'] / 2,
-    freeShip: C.freeShip, shipFee: C.shipFee
-  };
-  $$('[data-m]').forEach(function (el) { var v = M[el.dataset.m]; if (v != null) el.textContent = money(v); });
-  $$('[data-c]').forEach(function (el) { var v = C[el.dataset.c]; if (v) el.textContent = v; });
-  $$('[data-add]').forEach(function (b) { if (P[b.dataset.sku] != null) b.dataset.price = P[b.dataset.sku]; });
-  $$('[data-abn]').forEach(function (el) { el.textContent = C.abn ? 'ABN ' + C.abn : 'ABN coming soon'; });
-  $$('[data-mailto]').forEach(function (a) { a.href = 'mailto:' + C.email; });
-  $$('[data-social]').forEach(function (a) { var u = C.social && C.social[a.dataset.social]; if (u) { a.href = u; a.target = '_blank'; a.rel = 'noopener'; } });
-
-  // delivery estimate: Brisbane date (UTC+10, no daylight saving; read with getUTC*) + dispatch + delivery
-  // business days, skipping weekends and config holidays
+  // delivery estimate: Brisbane date (UTC+10, read with getUTC*) + business days, no weekends or holidays
   var now = new Date(Date.now() + 36e6), H = C.holidays || [], slow = C.dispatchDays[1] + C.deliveryDays[1];
   function bizDay(n, from) {
     var d = new Date(from || now), s;
@@ -40,13 +23,12 @@
   var eta = fmt(bizDay(C.dispatchDays[0] + C.deliveryDays[0])) + '–' + fmt(bizDay(slow));
   $$('[data-eta]').forEach(function (el) { el.innerHTML = 'Order today. Arrives <b>' + eta + '</b>, tracked.'; el.hidden = false; });
 
-  // Christmas: order-by = the latest day whose slowest delivery still lands by deliverBy. From 'from'
-  // until then it shows the gift block and the bar prefix; after that both stay hidden.
+  // Christmas: order-by = latest day whose slowest delivery lands by deliverBy; gift block + bar prefix until then
   var X = C.christmas, md = function (v, e) { return Date.UTC(now.getUTCFullYear(), v.slice(0, 2) - 1, +v.slice(3) + e) - e; };
   if (X && X.enabled) {
     var by = md(X.deliverBy, 1), cut = new Date(by);
     while (bizDay(slow, cut) > by) cut.setUTCDate(cut.getUTCDate() - 1);
-    // show the last working day (a weekend order dispatches Monday anyway)
+    // last working day (a weekend order ships Monday anyway)
     var ci = function () { return cut.toISOString().slice(0, 10); };
     while (!(cut.getUTCDay() % 6) || H.indexOf(ci()) > -1 || H.indexOf(ci().slice(5)) > -1) cut.setUTCDate(cut.getUTCDate() - 1);
     if (now >= md(X.from, 0) && now <= cut) {
@@ -56,12 +38,12 @@
     }
   }
 
-  // ---------- 2. smooth scroll ----------
+  // ---- 2. smooth scroll
   var hasGsap = !!(window.gsap && window.ScrollTrigger);
   var lenis = null;
   if (hasGsap) gsap.registerPlugin(ScrollTrigger);
   if (!reduce && window.Lenis) {
-    lenis = new Lenis({ lerp: 0.1 });
+    lenis = new Lenis({ lerp: 0.1, virtualScroll: function (v) { return v.event.cancelable; } }); // skip touches already scrolling
     if (hasGsap) {
       lenis.on('scroll', ScrollTrigger.update);
       gsap.ticker.add(function (t) { lenis.raf(t * 1000); });
@@ -73,23 +55,24 @@
   if (hasGsap) ScrollTrigger.config({ ignoreMobileResize: true });
   var hdr = $('[data-hdr]');
   var navOffset = function () { return $('.nav').offsetHeight + 12; };
-  function scrollToY(y) {
+  var ioC = function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+  function scrollToY(y) { // links: film targets land on a step, others let go
     y = Math.max(0, y);
-    if (lenis) {
-      var d = Math.abs(y - window.scrollY);
-      lenis.scrollTo(y, { duration: Math.min(1.8, 0.6 + d / 4000), easing: function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; } });
-    } else window.scrollTo({ top: y, behavior: reduce ? 'auto' : 'smooth' });
+    if (!lenis) return window.scrollTo({ top: y, behavior: reduce ? 'auto' : 'smooth' });
+    if (filmST && y < Y(4) + 2) return go(nearest(y));
+    free(); busy = !!filmST;
+    lenis.scrollTo(y, { duration: Math.min(1.8, 0.6 + Math.abs(y - scrollY) / 4000), easing: ioC, force: true, lock: true, onComplete: function () { busy = false; } });
   }
   function scrollToEl(el, extra) { scrollToY(el.getBoundingClientRect().top + window.scrollY - navOffset() - (extra || 0)); }
   window.LATITO = {
     lenis: lenis,
     lock: function (on) {
       document.documentElement.style.overflow = on ? 'hidden' : '';
-      if (lenis) on ? lenis.stop() : lenis.start();
+      if (lenis) on ? lenis.stop() : stepping || lenis.start();
     }
   };
 
-  // ---------- 3. film ----------
+  // ---- 3. film
   var film = $('#film'), filmST = null, beatSpan = 0.75, filmP = 0;
   function buildFilm() {
     if (reduce || !hasGsap || !window.LatitoFilm) return;
@@ -102,7 +85,7 @@
       var seg = b / beats.length, proxy = { p: 0 };
       var tl = gsap.timeline({
         defaults: { ease: 'none' },
-        scrollTrigger: { trigger: film, start: 'top top', end: 'bottom bottom', scrub: 0.8, onUpdate: function (st) { filmP = st.progress; onScroll(); } }
+        scrollTrigger: { trigger: film, start: 'top top', end: 'bottom bottom', scrub: 0.3, onUpdate: function (st) { filmP = st.progress; onScroll(); } }
       });
       filmST = tl.scrollTrigger;
       tl.to(proxy, { p: 1, duration: b, onUpdate: function () { renderer.render(proxy.p); } }, 0);
@@ -124,7 +107,56 @@
     });
   }
 
-  // ---------- 4. nav: theme, tuck, active link ----------
+  // ---- 3b. stepped film: one gesture = one step; S0–S3 = beats 1–4, S4 = shop landed (HANDOFF.md)
+  var si = 0, stepping = false, busy = false, wT = 0, wD = 0, tY = null, tUsed = false, setT = 0;
+  function Y(i) { var s = filmST.start; return Math.round(s + (filmST.end - s) * (i > 3 ? 1 : (i && i + 0.5) * beatSpan / 4)); }
+  function nearest(y) { for (var i = 1, b = 0; i < 5; i++) if (Math.abs(Y(i) - y) < Math.abs(Y(b) - y)) b = i; return b; }
+  function go(i) {
+    si = Math.max(0, Math.min(4, i)); stepping = true; lenis.stop();
+    var d = Math.abs(scrollY - Y(si));
+    if (d > 1) { busy = true; lenis.scrollTo(Y(si), { duration: Math.min(1.2, 0.3 + d / 300), easing: ioC, force: true, lock: true, onComplete: function () { busy = false; } }); }
+  }
+  function free() { stepping = false; lenis.start(); }
+  function held() { return document.body.classList.contains('cart-open') || !$('.pop').hidden; }
+  function step(d) { // "next" at S4 hands back to normal scrolling
+    if (busy || held()) return;
+    if (d > 0 && si > 3) { free(); lenis.scrollTo(Y(4) + innerHeight * 0.3, { duration: 0.8, easing: ioC }); } else go(si + d);
+  }
+  addEventListener('wheel', function (e) {
+    var d = Math.sign(e.deltaY), fresh = e.timeStamp - wT > 180 || d !== wD; // momentum = one gesture till a 180 ms gap
+    if (d) { wT = e.timeStamp; wD = d; }
+    if (stepping && d && !e.ctrlKey && Math.abs(e.deltaX) < Math.abs(e.deltaY)) { e.preventDefault(); if (fresh) step(d); }
+  }, { passive: false });
+  addEventListener('touchstart', function (e) { tY = e.touches[0].clientY; tUsed = false; }, { passive: true });
+  addEventListener('touchmove', function (e) {
+    if (!stepping || tY == null || e.touches.length > 1 || e.target.closest('.drawer, .pop')) return;
+    if (e.cancelable) e.preventDefault(); // else a scroll begun below the film
+    var dy = tY - e.touches[0].clientY;
+    if (!tUsed && Math.abs(dy) >= 30) { tUsed = true; step(Math.sign(dy)); }
+  }, { passive: false });
+  document.addEventListener('keydown', function (e) {
+    var a = document.activeElement, k = e.key, sp = k === ' ';
+    if (!stepping || held() || e.altKey || e.ctrlKey || e.metaKey || a.matches('input, textarea, select, [contenteditable]') || (sp && a !== document.body && a.closest('a, button, label, [tabindex]'))) return;
+    var d = k === 'Home' ? -9 : /^(ArrowDown|PageDown)$/.test(k) || (sp && !e.shiftKey) ? 1 : /^(ArrowUp|PageUp)$/.test(k) || sp ? -1 : 0;
+    if (!d) return;
+    e.preventDefault();
+    if (d > -9) step(d); else if (!busy) go(0);
+  });
+  document.addEventListener('focusin', function (e) { // focus past the film: let go, follow it
+    var t = e.target;
+    if (stepping && !film.contains(t) && !t.closest('.hdr, .skip, .sticky, .drawer, .pop')) { free(); busy = false; lenis.scrollTo(Math.max(scrollY, Y(4)), { immediate: true, force: true }); t.scrollIntoView({ block: 'nearest' }); }
+  });
+  function watch() { // re-arm on the way back up; a stop between steps settles onto one
+    if (busy) return;
+    if (!stepping && scrollY < Y(4) - 2) go(nearest(scrollY));
+    clearTimeout(setT);
+    setT = setTimeout(function () {
+      if (busy) return;
+      if (scrollY > Y(4) + 2) { if (stepping) free(); } else if (!stepping || Math.abs(scrollY - Y(si)) > 2) go(nearest(scrollY));
+    }, 160);
+  }
+
+  // ---- 4. nav: theme, tuck, active link
   var themed = $$('[data-nav-theme]'), links = $$('[data-nav-link]');
   var shopEl = $('#shop'), ritualEl = $('#ritual'), navCta = $('[data-nav-cta]'), ticking = false;
   function onScroll() {
@@ -156,7 +188,7 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll);
 
-  // ---------- 5. in-page links ----------
+  // ---- 5. in-page links
   function goto(name) {
     if (name === 'formula' && filmST) {
       var s = filmST.start + (filmST.end - filmST.start) * beatSpan * (2.5 / 4);
@@ -180,14 +212,14 @@
     if (document.getElementById(name)) { e.preventDefault(); if (a.closest('.drawer') && window.LatitoCart) window.LatitoCart.close(); goto(name); }
   });
 
-  // ---------- 6. buy buttons ----------
+  // ---- 6. buy buttons
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-add]');
     if (!b || !window.LatitoCart) return;
     window.LatitoCart.add(b.dataset.sku, 1, b);
   });
 
-  // ---------- 7. product card: tabs, quantity, gallery ----------
+  // ---- 7. product card: tabs, quantity, gallery
   var tabs = $$('[role="tab"]');
   function selectTab(key, focus) {
     tabs.forEach(function (t) {
@@ -244,7 +276,7 @@
     });
   });
 
-  // ---------- 8. accordions ----------
+  // ---- 8. accordions
   function setAcc(btn, open) {
     if (!btn) return;
     btn.setAttribute('aria-expanded', open);
@@ -259,7 +291,7 @@
     scrollToEl(btn, 16);
   }
 
-  // ---------- 9. sticky mobile bar ----------
+  // ---- 9. sticky mobile bar
   var bar = $('[data-sticky]'), barBtn = $('button', bar), buyVisible = false, buyIO = null;
   function observeBuy() {
     if (!('IntersectionObserver' in window)) return;
@@ -279,7 +311,7 @@
   document.addEventListener('cart:change', sticky);
   document.addEventListener('cart:closed', function () { sticky(); if (popWaiting) showPop(); });
 
-  // ---------- 10. email slide-in ----------
+  // ---- 10. email slide-in
   var POPKEY = 'latito_founding_v1', pop = $('[data-pop]'), popWaiting = false, popShown = !!store.get(POPKEY), popOpener = null;
   function showPop(force) {
     if (!force && popShown && !popWaiting) return;
@@ -328,14 +360,22 @@
       $('[data-pop-ok]', pop).hidden = false;
       $('.pop__x', pop).focus();
     };
-    if (!C.emailEndpoint) return done();
+    // Klaviyo (client API), else emailEndpoint, else success shown only
+    var K = C.klaviyo || {}, req;
+    if (K.companyId && K.listId) req = fetch('https://a.klaviyo.com/client/subscriptions?company_id=' + encodeURIComponent(K.companyId), {
+      method: 'POST', headers: { 'Content-Type': 'application/vnd.api+json', revision: '2026-10-15' },
+      body: JSON.stringify({ data: { type: 'subscription', attributes: { custom_source: 'Founding 100 slide-in',
+        profile: { data: { type: 'profile', attributes: { email: email, subscriptions: { email: { marketing: { consent: 'SUBSCRIBED' } } } } } } },
+        relationships: { list: { data: { type: 'list', id: K.listId } } } } })
+    });
+    else if (C.emailEndpoint) req = fetch(C.emailEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, source: 'founding-100' }) });
+    else { console.warn('[LATITO] Sign-up not saved: set klaviyo or emailEndpoint in site.config.js'); return done(); }
     btn.disabled = true;
-    fetch(C.emailEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, source: 'founding-100' }) })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); done(); })
+    req.then(function (r) { if (!r.ok) throw new Error(r.status); done(); })
       .catch(function () { btn.disabled = false; err.textContent = 'That didn’t send. Please try again.'; });
   });
 
-  // ---------- 11. rail buttons ----------
+  // ---- 11. rail buttons
   var rail = $('[data-rail-track]');
   $$('[data-rail]').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -344,7 +384,7 @@
     });
   });
 
-  // ---------- 12. section reveals ----------
+  // ---- 12. section reveals
   var reveals = $$('[data-reveal]');
   if ('IntersectionObserver' in window && !reduce) {
     $$('section, footer').forEach(function (s) { $$('[data-reveal]', s).forEach(function (el, i) { el.style.setProperty('--d', Math.min(i, 5) * 80 + 'ms'); }); });
@@ -355,6 +395,12 @@
   } else reveals.forEach(function (el) { el.classList.add('is-in'); });
 
   buildFilm();
+  if (lenis && filmST) {
+    window.addEventListener('scroll', watch, { passive: true });
+    ScrollTrigger.addEventListener('refresh', function () { if (stepping && !busy) lenis.scrollTo(Y(si), { immediate: true, force: true }); });
+    watch();
+    window.LATITO.step = { go: go, y: Y, i: function () { return stepping ? si : -1; } };
+  }
   observeBuy();
   onScroll();
   if (hasGsap) window.addEventListener('load', function () { ScrollTrigger.refresh(); });

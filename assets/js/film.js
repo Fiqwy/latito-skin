@@ -1,14 +1,4 @@
-/* LATITO film renderer. One interface, two modes:
-   - "stills":   the four keyframe <img>s crossfade with a slow push-in, drift and tilt.
-   - "sequence": if assets/film/manifest.json has frames > 0, an image sequence is drawn on a
-                 <canvas> (cover-fit, DPR-aware, first 24 frames preloaded, the rest streamed,
-                 nearest loaded frame drawn).
-   main.js drives both through render(p), where p runs 0 to 1 across the four beats.
-   Manifest: { "frames": N, "desktop": "assets/film/d/%04d.webp", "mobile": "assets/film/m/%04d.webp",
-               "w": 1920, "h": 1080, "start": 1, "holdStart": 0.125, "holdEnd": 0.125, "focusMobile": 0.5 }
-   start = first file number (default 1). holdStart / holdEnd = fractions of p that hold the first /
-   last frame, so the frames between land on the copy beats. focusMobile = crop focus x on phones
-   (default 0.64, for 16:9 frames; 0.5 suits portrait frames). */
+/* LATITO film renderer: render(p), p = 0–1. Canvas image sequence if manifest frames > 0, else stills (HANDOFF.md). */
 (function () {
   'use strict';
   var clamp = function (v, a, b) { return v < a ? a : v > b ? b : v; };
