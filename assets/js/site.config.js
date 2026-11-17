@@ -19,10 +19,18 @@ window.LATITO_CONFIG = {
   social: { instagram: '', tiktok: '' }, // full profile URLs; empty links stay as "#"
   // Checkout: filled by `node _tools/shopify-connect.mjs <shop>.myshopify.com <public-token>` (sku → variant GID)
   shopify: {
-    domain: '',
-    storefrontToken: '', // PUBLIC Storefront token (Headless channel), never an Admin token
+    domain: 'a0hiwh-fu.myshopify.com',
+    storefrontToken: 'cac2e8f8ca88322e57694081a6cf6355', // PUBLIC Storefront token (Headless channel), never an Admin token
     apiVersion: '2026-10',
-    variants: {}
+    variants: {
+      'ritual-1': 'gid://shopify/ProductVariant/51063149527298',
+      'ritual-2': 'gid://shopify/ProductVariant/51063149560066',
+      'ritual-3': 'gid://shopify/ProductVariant/51063149592834',
+      'wrap-1': 'gid://shopify/ProductVariant/51063149625602',
+      'wrap-2': 'gid://shopify/ProductVariant/51063149658370',
+      'cream-1': 'gid://shopify/ProductVariant/51063149723906',
+      'cream-2': 'gid://shopify/ProductVariant/51063149756674'
+    }
   },
   pixels: { meta: '', tiktok: '' }, // pixel IDs; empty = no tracking code loads
   klaviyo: { companyId: '', listId: '' }, // public API key (site ID) + list ID, Founding 100 slide-in
