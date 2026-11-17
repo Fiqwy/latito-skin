@@ -369,7 +369,7 @@
         relationships: { list: { data: { type: 'list', id: K.listId } } } } })
     });
     else if (C.emailEndpoint) req = fetch(C.emailEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, source: 'founding-100' }) });
-    else { console.warn('[LATITO] Sign-up not saved: set klaviyo or emailEndpoint in site.config.js'); return done(); }
+    else { console.warn('[LATITO] Sign-up not saved: no klaviyo or emailEndpoint'); $('[data-pop-inbox]', pop).hidden = true; return done(); }
     btn.disabled = true;
     req.then(function (r) { if (!r.ok) throw new Error(r.status); done(); })
       .catch(function () { btn.disabled = false; err.textContent = 'That didn’t send. Please try again.'; });
